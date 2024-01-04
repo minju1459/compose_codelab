@@ -3,6 +3,9 @@ package com.example.compose_codelab
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -43,7 +46,7 @@ fun MyApp(
     modifier: Modifier = Modifier,
 ) {
     // -by remember = composable이 composition에 유지되는 동안에만 작동
-    // -by rememberSaveable = 회전과 같은 구성 변경 / 프로세스 중단에도 상태 저장
+    // -by rememberSaveable = 회전과 같은 구성 변경 / 프로세스 중단에도 상태 저
     var shouldShowOnboarding by rememberSaveable { mutableStateOf(true) }
 
     Surface(modifier) {
@@ -98,9 +101,14 @@ fun OnboardingPreview() {
 
 @Composable
 private fun Greeting(name: String) {
-    val expanded = remember { mutableStateOf(false) }
-    val extraPadding = if (expanded.value) 48.dp else 0.dp
-
+    var expanded by remember { mutableStateOf(false) }
+    val extraPadding by animateDpAsState(
+        if (expanded) 48.dp else 0.dp,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow,
+        ),
+    )
     Surface(
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
@@ -109,15 +117,15 @@ private fun Greeting(name: String) {
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(bottom = extraPadding),
+                    .padding(bottom = extraPadding.coerceAtLeast(0.dp)),
             ) {
                 Text(text = "Hello, ")
                 Text(text = name)
             }
             ElevatedButton(
-                onClick = { expanded.value = !expanded.value },
+                onClick = { expanded = !expanded },
             ) {
-                Text(if (expanded.value) "Show less" else "Show more")
+                Text(if (expanded) "Show less" else "Show more")
             }
         }
     }
